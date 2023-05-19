@@ -1,0 +1,139 @@
+/*Programa de Registro de Motocicletas para el Estacionamiento de la FCA*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAX_LINE_LENGTH 1024
+#define MAX_FIELDS 60
+
+typedef struct {
+    char *nombrePropietario;
+    char *apellidoPropietario;
+    char *placa;
+    char *horaEntrada;
+} Moto;
+
+void makeStruct(Moto *moto, char *csvString) {
+    char *token = strtok(csvString, ",");
+
+    // Asignar valores a la estructura de la moto
+    moto->nombrePropietario = strdup(token);
+
+    token = strtok(NULL, ",");
+    moto->apellidoPropietario = strdup(token);
+
+    token = strtok(NULL, ",");
+    moto->placa = strdup(token);
+
+    token = strtok(NULL, ",");
+    moto->horaEntrada = strdup(token);
+}
+
+void solicitarDatos(char *nombre, char *apellido, char *placa, char *horaActual) {
+    // Solicitar los datos al usuario
+    printf("Ingrese el nombre del propietario de la moto: ");
+    scanf("%s", nombre);
+
+    printf("Ingrese el apellido del propietario de la moto: ");
+    scanf("%s", apellido);
+
+    printf("Ingrese la placa de la moto: ");
+    scanf("%s", placa);
+
+    // Obtener la hora actual del sistema
+    time_t rawtime;
+    struct tm *info;
+    time(&rawtime);
+    info = localtime(&rawtime);
+    strftime(horaActual, 9, "%H:%M:%S", info);
+}
+
+void generarArray(char *nombreArchivo, Moto **arregloDeMotos) {
+    char buffer[MAX_LINE_LENGTH];
+    int num_lineas = 0;
+    FILE *archivoCsv = fopen(nombreArchivo, "r");
+
+    if (archivoCsv == NULL) {
+        // Si el archivo no existe, se ingresan los valores manualmente
+        printf("El archivo no existe. Ingresando valores manualmente...\n");
+
+        system("echo.> archivo.csv"); // Crea el archivo si no existe (Windows)
+
+        archivoCsv = fopen("archivo.csv", "a");
+    } else {
+        // Si el archivo existe, se cierra y se abre en modo "append"
+        fclose(archivoCsv);
+        archivoCsv = fopen("archivo.csv", "a");
+    }
+
+    char nombre[50];
+    char apellido[50];
+    char placa[20];
+    char horaActual[9];
+    char opcion;
+
+    do {
+        if (archivoCsv != NULL) {
+            // Solicitar datos al usuario y guardarlos en el archivo CSV
+            solicitarDatos(nombre, apellido, placa, horaActual);
+
+            snprintf(buffer, sizeof(buffer), "%s,%s,%s,%s\n", nombre, apellido, placa, horaActual);
+            fputs(buffer, archivoCsv);
+        } else {
+            printf("Error al abrir el archivo.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("¿Desea ingresar otra moto? (s/n): ");
+        scanf(" %c", &opcion);
+    } while (opcion == 's' || opcion == 'S');
+
+    fclose(archivoCsv);
+    archivoCsv = fopen("archivo.csv", "r");
+
+    while (fgets(buffer, MAX_LINE_LENGTH, archivoCsv) != NULL) {
+        num_lineas++;
+        printf("Line number %d: %s", num_lineas, buffer);
+
+        // Asignar memoria y convertir las líneas del archivo CSV en estructuras de motos
+        arregloDeMotos[num_lineas] = (Moto *)malloc(sizeof(Moto));
+        makeStruct(arregloDeMotos[num_lineas], buffer);
+    }
+
+    fclose(archivoCsv);
+}
+
+int main() {
+    // Reservar memoria para el arreglo de motos
+    Moto **motos = malloc(MAX_FIELDS * sizeof(Moto *));
+
+    // Generar el arreglo de motos a partir del archivo CSV o ingresando manualmente
+    generarArray("archivo.csv", motos);
+
+    int num_motos = 0;
+    while (motos[num_motos] != NULL) {
+        num_motos++;
+    }
+
+    // Imprimir los datos de las motos en el arreglo
+    for (int i = 1; i <= num_motos; i++) {
+        printf("Nombre del propietario: %s\n", motos[i]->nombrePropietario);
+        printf("Apellido del propietario: %s\n", motos[i]->apellidoPropietario);
+        printf("Placa: %s\n", motos[i]->placa);
+        printf("Hora de entrada: %s\n", motos[i]->horaEntrada);
+        printf("\n");
+    }
+
+    // Liberar memoria asignada
+    for (int i = 1; i <= num_motos; i++) {
+        free(motos[i]->nombrePropietario);
+        free(motos[i]->apellidoPropietario);
+        free(motos[i]->placa);
+        free(motos[i]->horaEntrada);
+        free(motos[i]);
+    }
+    free(motos);
+
+    return 0;
+}
