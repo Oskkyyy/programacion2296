@@ -1,4 +1,10 @@
-/*Programa de Registro de Motocicletas para el Estacionamiento de la FCA*/
+/*Programa de registro para el estacionamiento de motocicletas de la FCA*/
+
+/*@date <19-05-2023>
+@author <Bueno Vazquez Ariel, Juarez Velazquez Rafael, Ortiz Bravo Oscar, Ramirez Espejel Aldo>
+@version <1.0>*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +20,10 @@ typedef struct {
     char *horaEntrada;
 } Moto;
 
+//@name <makeStruct>
+//@param <moto, char> 
+//@param <csvString,char>
+//@return <nanais de paraguais>
 void makeStruct(Moto *moto, char *csvString) {
     char *token = strtok(csvString, ",");
 
@@ -29,6 +39,14 @@ void makeStruct(Moto *moto, char *csvString) {
     token = strtok(NULL, ",");
     moto->horaEntrada = strdup(token);
 }
+
+
+/*solicitarDatos
+nombre de tipo char
+apellido de tipo char
+placa de tipo char
+horaActual de tipo char
+no regresa nigun valor*/
 
 void solicitarDatos(char *nombre, char *apellido, char *placa, char *horaActual) {
     // Solicitar los datos al usuario
@@ -48,6 +66,12 @@ void solicitarDatos(char *nombre, char *apellido, char *placa, char *horaActual)
     info = localtime(&rawtime);
     strftime(horaActual, 9, "%H:%M:%S", info);
 }
+
+
+/*generarArray
+nombreArchivo de tipo char
+arregloDeMotos de tipo string
+no regresa nigun valor*/
 
 void generarArray(char *nombreArchivo, Moto **arregloDeMotos) {
     char buffer[MAX_LINE_LENGTH];
@@ -103,6 +127,10 @@ void generarArray(char *nombreArchivo, Moto **arregloDeMotos) {
 
     fclose(archivoCsv);
 }
+
+//name <main>
+//param <NULL> <NULL> 
+//return <int>
 
 int main() {
     // Reservar memoria para el arreglo de motos
